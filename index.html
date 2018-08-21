@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>A Guided Tour Through Elm</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css" id="theme">
+    <link rel="stylesheet" href="blood.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/atom-one-dark.css">
+
+
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+        document.write('<link rel="stylesheet" href="css/print/' + (window.location.search.match(/print-pdf/gi) ? 'pdf' : 'paper') + '.css" type="text/css" media="print">');
+    </script>
+
+    <style type="text/css">
+        @page {
+            margin: 0;
+            size: auto;
+        }
+    </style>
+
+    <script>
+        if (window.location.search.match(/print-pdf-now/gi)) {
+            window.print();
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div class="reveal">
+        <div class="slides">
+            <section data-markdown>
+                <script type="text/template">
+<!-- .slide: data-background-image="https://upload.wikimedia.org/wikipedia/commons/f/f3/Elm_logo.svg" -->
+
+# Elm
+
+## A guided tour
+</script>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## About Me
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## David Mills
+
+Instructor @ Lighthouse Labs
+
+Polyglot Developer
+
+### Education
+
+Graduated from Sheridan College
+
+Systems Analyst
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Work Experience
+
+- TD Bank
+- Agencies
+  - Worked on adidas.com, mccain.com and sleeman.com
+- Start-ups
+  - iOS @ Venio
+  - TA @ Bitmaker Labs
+  - iOS/Web/Android @ Influitive
+
+<https://www.linkedin.com/in/daegren/>
+</script>
+                </section>
+            </section>
+            <section data-markdown>
+                <script type="text/template">
+## Outline
+
+- What is Elm?
+- Elm language basics
+- The Elm Architecture
+- Error handling and Async
+- JS Interop
+- Tooling
+</script>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## What is Elm?
+
+> Elm is a functional language that compiles to JavaScript.
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Elm's focus
+
+- No runtime errors
+  - No `null`
+  - No `undefined` is not a function
+- Friendly error messages
+- Well architected code that _stays_ well architected
+- Automatically enforced semantic versioning of packages
+</script>
+                </section>
+            </section>
+            <section data-markdown>
+                <script type="text/template">
+# Elm Language
+</script>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Basics
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Comments
+
+```elm
+-- a single line comment
+
+{- a multiline comment
+  {- can be nested -}
+-}
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Literals
+
+```elm
+True  : Bool
+False : Bool
+
+42    : number -- Int or Float depending on usage
+3.14  : Float
+
+'a'   : Char
+"abc" : String
+
+-- multi-line string
+"""
+This is useful for holding JSON or other
+content that has "quotation marks"
+"""
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Lists
+
+These are equivalent
+
+```elm
+[1,2,3,4]
+1 :: [2,3,4]
+1 :: 2 :: 3 :: 4 :: []
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Conditionals (`if/else`)
+
+```elm
+if powerLevel > 9000 then
+    "OVER 9000!!!"
+else
+    "meh"
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Conditionals (`if`/`else if`/`else`)
+
+```elm
+if key == 40 then
+    n + 1
+else if key == 38 then
+    n - 1
+else
+    n
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Conditionals (`case`)
+
+```elm
+-- When working with a Maybe
+case maybe of
+    Just xs -> xs
+    Nothing -> []
+
+-- When working with a List
+case xs of
+    head :: tail -> Just (head, tail)
+    []           -> Nothing
+```
+
+```elm
+fib n =
+    case n of
+        0 -> 1
+        1 -> 1
+        -- _ is a catch all case
+        _ -> fib (n - 1) + fib (n - 2)
+```
+</script>
+                </section>
+            </section>
+            <section data-markdown>
+                <script type="text/template">
+### Error Messages
+
+```elm
+toFullName
+    : { a | firstName : String , lastName : String }
+    -> String
+toFullName person =
+  person.firstName ++ " " ++ person.lastName
+
+fullName =
+  toFullName { fistName = "Hermann", lastName = "Hesse" }
+```
+
+```console
+-- TYPE MISMATCH -------------------------------------------------
+The argument to function `toFullName` is causing a mismatch.
+
+6│   toFullName { fistName = "Hermann", lastName = "Hesse" }
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Function `toFullName` is expecting the argument to be:
+    { …, firstName : … }
+
+But it is:
+    { …, fistName : … }
+
+Hint: I compared the record fields and found some potential typos.
+    firstName <-> fistName
+```
+</script>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Union Types & Records
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Union Types
+
+```elm
+-- Built in Maybe type
+type Maybe a
+    = Just a
+    | Nothing
+
+-- Built in Result
+type Result error a
+    = Ok a
+    | Err error
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### More Union Types
+
+```elm
+type MessageType
+    = Text
+    | System
+    | User
+
+type BinaryTree a
+    = Empty
+    | Node a (BinaryTree a) (BinaryTree a)
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Records (Creating)
+
+```elm
+point =
+    { x = 3, y = 4 }
+
+bill =
+    { name = "Gates", age = 57 }
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Records (Accessing)
+
+```elm
+> .name
+<function> : { b | name : a } -> a
+
+> point.x
+3 : Int
+
+> List.map .x [ point, { x = 0, y = 0} ]
+[3, 0] : List number
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Records (Updating)
+
+```elm
+-- Updating a single value
+> { point | x = 6 }
+{ x = 6, y = 4 } : { x : number, y : number }
+
+-- Updating multiple values
+{ point
+    | x = point.x + 1
+    , y = point.y + 1
+}
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Records (Pattern Matching)
+
+```elm
+point =
+    { x = 3, y = 4 }
+
+dist { x, y } =
+    sqrt (x ^ 2 + y ^ 2)
+
+> dist point
+5 : Float
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Record Caveats
+
+- You cannot ask for a field that doesn't exist
+- No field will ever be `undefined` or `null`
+- You connot create recursive records with a `this` or `self` keyword
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Functions
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Functions
+
+```elm
+square n =
+    n ^ 2
+
+hypotenuse a b =
+    sqrt (square a + square b)
+
+distance (a , b) (x , y) =
+  hypotenuse (a - x) (b - y)
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Anonymous Functions
+
+```elm
+square =
+  \n -> n ^ 2
+
+squares =
+  List.map (\n -> n ^ 2) (List.range 1 100)
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Let Expressions
+
+```elm
+let
+    twentyFour =
+        3 * 8
+
+    sixteen =
+        4 ^ 2
+in
+twentyFour + sixteen
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Let Expressions
+
+```elm
+let
+    ( three, four ) =
+        ( 3, 4 )
+
+    hypotenuse a b =
+        sqrt (a ^ 2 + b ^ 2)
+in
+hypotenuse three four
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Type Annotations
+
+```elm
+name : String -- Is just a String
+name =
+    "Dave"
+
+twentyFour : Int -- Is just an Int
+twentyFour =
+    24
+
+isTrue : Bool -- Is just a Bool
+isTrue =
+    True
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Type Annotations
+
+### Functions
+
+```elm
+-- Takes one parameter (Int) and returns an Int
+increment : Int -> Int
+increment n =
+    n + 1
+
+-- Takes two arguments (Msg and Model) and returns a Tuple
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    ( model, Cmd.none )
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Type Aliases
+
+```elm
+type alias Person =    -- record
+    { name : String
+    , age : Int
+    }
+
+type alias Point =     -- tuple
+    ( Int, Int )
+
+type Field             -- union type
+    = Email | Password | Form
+
+type alias Error =     -- tuple using the union type
+    ( Field, String )
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Type Aliases & Annotations
+
+```elm
+add : Point -> Point -> Point
+add ( x1, y1 ) ( x2, y2 ) =
+    ( x1 + x2, y1 + y2 )
+```
+
+vs
+
+```elm
+add : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
+add ( x1, y1 ) ( x2, y2 ) =
+    ( x1 + x2, y1 + y2 )
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Type Aliases & Annotations
+
+```elm
+reverseName : Person -> String
+reverseName { name } =
+    String.reverse name
+```
+
+vs
+
+```elm
+reverseName : { a | name : String } -> String
+reverseName { name } =
+    String.reverse name
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Elm Architecture
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## The Basics
+
+- **Model** -- The state of your app
+- **Update** -- A way to update the state
+- **View** -- A way to view your state as HTML
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## The Basics
+
+```elm
+-- MODEL --
+type alias Model = { ... }
+
+-- UPDATE --
+type Msg = Reset | ...
+
+update msg model =
+    case msg of
+        Reset ->
+          ...
+        ...
+
+-- VIEW --
+view model =
+    ...
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+# Counter Example
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Model
+
+```elm
+-- Model --
+
+type alias Model = Int
+
+initialModel : Model
+initialModel =
+    0
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Update
+
+```elm
+-- UPDATE --
+
+type Msg
+    = Increment
+    | Decrement
+
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        Increment ->
+            model + 1
+
+        Decrement ->
+            model - 1
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### View
+
+```elm
+import Html exposing (..)
+import Html.Events exposing (onClick)
+
+...
+
+-- VIEW --
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ button [ onClick Decrement ] [ text "-" ]
+        , div [] [ text (toString model) ]
+        , button [ onClick Increment ] [ text "+" ]
+        ]
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Main
+
+```elm
+main =
+    Html.beginnerProgram
+        { model = initialModel
+        , view = view
+        , update = update
+        }
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Full Example
+
+<http://elm-lang.org/examples/buttons>
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Elm Architecture
+
+### Getting it to do things
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `Cmd`
+
+```elm
+import Random
+
+type alias Model = Int
+
+roll : Random.Generator Int
+roll =
+    Random.int 1 6
+```
+
+...
+
+```elm
+type Msg = Roll | NewFace Int
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    case msg of
+        Roll ->
+            ( model
+            , Random.generate NewFace roll
+            )
+        NewFace newFace ->
+            ( newFace, Cmd.none )
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `Sub`
+
+```elm
+import AnimationFrame
+import Time exposing (Time)
+
+type Msg = Tick Time
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    case msg of
+        Tick delta ->
+            ... -- Do something with the tick
+```
+
+...
+
+```elm
+-- SUBSCRIPTIONS --
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    AnimationFrame.difs Tick
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## Main w/ CMD and SUB
+
+```elm
+-- MAIN --
+
+main =
+    Html.program
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
+```
+</script>
+                </section>
+            </section>
+            <section data-markdown>
+                <script type="text/template">
+## Error Handling and Tasks
+</script>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## How do we deal with `null` or `undefined`?
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `Maybe`
+
+```elm
+-- Type definition
+type Maybe a
+    = Just a
+    | Nothing
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `Maybe`
+
+```elm
+module Status exposing (Status, parseStatus)
+type Status
+    = Pending
+    | Completed
+```
+
+...
+
+```elm
+parseStatus : String -> Maybe Status
+parseStatus status =
+    case status of
+        "pending" ->
+            Just Pending
+
+        "completed" ->
+            Just Completed
+
+        _ ->
+            Nothing
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## What about Exceptions?
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `Result`
+
+```elm
+type Result error value
+    = Ok value
+    | Err error
+```
+
+#### `String.toInt`
+
+```elm
+String.toInt : String -> Result String Int
+
+> import String
+> String.toInt "128"
+Ok 128 : Result String Int
+
+> String.toInt "64"
+Ok 64 : Result String Int
+
+> String.toInt "BBBB"
+Err "could not convert string 'BBBB' to an Int"
+    : Result String Int
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## JSON
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Decoding - Primitives
+
+```elm
+string : Decoder String
+int    : Decoder Int
+float  : Decoder Float
+bool   : Decoder Bool
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Decoding - Values
+
+```elm
+import Json.Decode exposing (decodeString, decodeValue)
+
+decodeString : Decoder a -> String -> Result String a
+
+decodeValue : Decoder a -> Json.Decode.Value -> Result String a
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Decoding - Example
+
+```elm
+> import Json.Decode exposing (..)
+
+> decodeString int "42"
+Ok 42 : Result String Int
+
+> decodeString float "3.14159"
+Ok 3.14159 : Result String Float
+
+> decodeString bool "true"
+Ok True : Result String Bool
+
+> decodeString int "true"
+Err "Expecting an Int but instead got: true" : Result String Int
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Combining Decoders
+
+```elm
+list : Decoder a -> Decoder (List a)
+```
+
+```elm
+> import Json.Decode exposing (..)
+
+> int
+<decoder> : Decoder Int
+
+> list int
+<decoder> : Decoder (List Int)
+
+> decodeString (list int) "[1,2,3]"
+Ok [1,2,3] : Result String (List Int)
+
+> decodeString (list string) """["hi", "yo"]"""
+Ok ["hi", "yo"] : Result String (List String)
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+### Decoding Objects
+
+```elm
+field : String -> Decoder a -> Decoder a
+```
+
+```elm
+> import Json.Decode exposing (..)
+
+> field "x" int
+<decoder> : Decoder Int
+
+> decodeString (field "x" int) """{ "x": 3, "y": 4 }"""
+Ok 3 : Result String Int
+
+> decodeString (field "y" int) """{ "x": 3, "y": 4 }"""
+Ok 4 : Result String Int
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Decoding Objects
+
+```elm
+map2 : (a -> b -> x) -> Decoder a -> Decoder b -> Decoder x
+```
+
+```elm
+import Json.Decode exposing (..)
+type alias Point =
+    { x : Int
+    , y : Int
+    }
+
+pointDecoder : Decoder Point
+pointDecoder =
+    map2 Point
+        (field "x" int)
+        (field "y" int)
+
+> decodeString pointDecoder """{ "x": 3, "y", 4 }"""
+Ok { x = 3, y = 4 } : Result String Point
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Decoding Objects
+
+- There are many more helpers: `map3`, `map4`, `map5`, `map6`, etc.
+- For larger objects, check out:
+
+  [`NoRedInk/elm-decode-pipeline`](http://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest)
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Tasks
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Handling Async actions
+
+```elm
+type alias Task err ok
+    = Task err ok
+
+Task.attempt : (Result x a -> msg) -> Task x a -> Cmd msg
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### HTTP
+
+```elm
+import Http
+import Json.Decode exposing (Decoder)
+
+type alias Post = { ... }
+
+decodePost : Decoder Post
+decodePost =
+    ...
+```
+
+```elm
+getPost : Int -> Http.Request Post
+getPost id =
+    let
+        url =
+            "https://jsonplaceholder.typicode.com/posts/"
+                ++ toString id
+    in
+    Http.get url decodePost
+
+Http.send : (Result error a -> msg) -> Request a -> Cmd msg
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Communicating with JavaScript
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Ports
+
+#### Elm
+
+```elm
+-- Spelling.elm
+
+port module Spelling exposing (..)
+...
+-- Port for sending strings out to JS
+port check : String -> Cmd msg
+
+-- Port for listening for suggestions from JS
+port suggestions : (List String -> msg) -> Sub msg
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Ports
+
+#### JS
+
+```js
+// app.js
+
+const app = Elm.Spelling.fullscreen();
+
+// We subscribe to the incomming messages from the Elm app
+app.ports.check.subscribe(word => {
+  const suggestions = spellCheck(word);
+
+  // We send messages back through the port to Elm
+  app.ports.suggestions.send(suggestions);
+});
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Tooling
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `elm repl`
+
+```console
+---- elm-repl 0.18.0 -------------------------------------------
+ :help for help, :exit to exit
+----------------------------------------------------------------
+> a = "Hello"
+"Hello" : String
+> b = "World"
+"World" : String
+> a ++ b
+"HelloWorld" : String
+>
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `elm make`
+
+Builds an Elm project into JS
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### `elm reactor`
+
+Allows us to run an Elm app quickly
+
+> Interactive development tool that makes it easy to develop and debug Elm
+> programs.
+> Read more about it at <https://github.com/elm-lang/elm-reactor>.
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+## Usage with Webpack
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### [`elm-webpack-loader`](https://github.com/elm-community/elm-webpack-loader)
+
+A webpack loader for elm projects
+
+```javascript
+// webpack.config.js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        use: {
+          loader: "elm-webpack-loader",
+          options: {
+            debug: true // shows the elm state debugger
+          }
+        }
+      }
+    ]
+  }
+};
+```
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+### Entry Point
+
+```javascript
+// index.js
+import Elm from "./Main.elm";
+
+document.addEventListener("DOMContentLoaded", event => {
+  const elm = document.getElementById("elm-root");
+  Elm.Main.embed(elm);
+});
+```
+</script>
+                </section>
+            </section>
+            <section>
+                <section data-markdown>
+                    <script type="text/template">
+# Other Examples
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## [`elm-tetris`](https://daegren.github.io/elm-tetris/dist)
+
+[Code](https://github.com/daegren/elm-tetris)
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## [`elm-spa-example`](https://elm-spa-example.netlify.com/)
+
+[Code](https//github.com/rtfeldman/elm-spa-example)
+</script>
+                </section>
+                <section data-markdown>
+                    <script type="text/template">
+## [built with elm](http://builtwithelm.co/)
+</script>
+                </section>
+            </section>
+            <section data-markdown>
+                <script type="text/template">
+## More Resources
+
+[elm-lang.org](http://elm-lang.org/)
+
+[guide.elm-lang.org](https://guide.elm-lang.org/)
+
+[package.elm-lang.org](http://package.elm-lang.org/)
+
+[/r/elm](https://www.reddit.com/r/elm/)
+
+[Elm Slack](https://elmlang.herokuapp.com/)
+</script>
+            </section>
+            <section data-markdown>
+                <script type="text/template">
+<!-- .slide: data-background-image="https://upload.wikimedia.org/wikipedia/commons/f/f3/Elm_logo.svg" -->
+
+# Thank you!
+</script>
+            </section>
+        </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+        function extend() {
+            var target = {};
+            for (var i = 0; i < arguments.length; i++) {
+                var source = arguments[i];
+                for (var key in source) {
+                    if (source.hasOwnProperty(key)) {
+                        target[key] = source[key];
+                    }
+                }
+            }
+            return target;
+        }
+        // Optional libraries used to extend on reveal.js
+        var deps = [
+            { src: 'lib/js/classList.js', condition: function () { return !document.body.classList; } },
+            { src: 'plugin/markdown/marked.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+            { src: 'plugin/markdown/markdown.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+            { src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } },
+            { src: 'plugin/notes/notes.js', async: true, condition: function () { return !!document.body.classList; } },
+            { src: 'plugin/math/math.js', async: true }
+        ];
+        // default options to init reveal.js
+        var defaultOptions = {
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
+            transition: 'default',
+            dependencies: deps
+        };
+        // options from URL query string
+        var queryOptions = Reveal.getQueryHash() || {};
+        var options = {
+            "notesSeparator": "note:",
+            "separator": "^[\r\n?|\n]---[\r\n?|\n]$",
+            "verticalSeparator": "^[\r\n?|\n]--[\r\n?|\n]$",
+            "theme": "black",
+            "highlightTheme": "atom-one-dark",
+            "controls": false,
+            "progress": false,
+            "slideNumber": false,
+            "history": true,
+            "keyboard": true,
+            "overview": true,
+            "center": true,
+            "touch": true,
+            "loop": false,
+            "rtl": false,
+            "shuffle": false,
+            "fragments": true,
+            "embedded": false,
+            "help": true,
+            "showNotes": false,
+            "autoSlide": 0,
+            "autoSlideStoppable": true,
+            "mouseWheel": false,
+            "hideAddressBar": true,
+            "previewLinks": false,
+            "transition": "default",
+            "transitionSpeed": "default",
+            "backgroundTransition": "default",
+            "viewDistance": 3,
+            "parallaxBackgroundImage": "",
+            "parallaxBackgroundSize": "",
+            "parallaxBackgroundHorizontal": null,
+            "parallaxBackgroundVertical": null,
+            "slideExplorerEnabled": true,
+            "browserPath": null,
+            "customTheme": "blood",
+            "attributes": ""
+        };
+        options = extend(defaultOptions, options, queryOptions);
+        Reveal.initialize(options);
+
+    </script>
+
+</body>
+
+</html>
